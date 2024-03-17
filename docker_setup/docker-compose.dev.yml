@@ -1,0 +1,20 @@
+version: '3.5'
+services:
+  
+  chatbot_engine:
+    container_name: chatbot_engine
+    restart: always
+    build:
+      context: ../chatbot_util
+      dockerfile: ../chatbot_util/Dockerfile
+    image: chatbot_engine:dev
+    volumes:
+      - ../chatbot_util/:/chatbot_util/
+    command: nvidia-smi
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
