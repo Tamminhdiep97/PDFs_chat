@@ -60,24 +60,26 @@ def main(model, tokenizer, prompt):
     torch.cuda.empty_cache()
 
     result = model_seq_gen(model, tokenizer, prompt)
-    print(result)
+    logger.info('result: {}'.format(result))
     
 
 
 
 if __name__ == '__main__':
+    logger.info('get model')
     model, tokenizer = get_model()
+    logger.info('model download done')
     try:
-        while True:
-            print('Type in your instruction: ')
-            instruction = input()
-            print('Type in you input: ')
-            input_ = input()
-            example = {
-                    'instruction': instruction,
-                    'input': input_
-                    }
-            eval_prompt = formatting_func(example)
-            main(model, tokenizer, eval_prompt)
-    except KeyboardInterrupt:
+        instruction = 'answer the question'
+        input_ = 'What is the height of Everest Mountain'
+        logger.info('instruction: {}'.format(instruction))
+        logger.info('input: {}'.format(input_))
+        example = {
+                'instruction': instruction,
+                'input': input_
+                }
+        eval_prompt = formatting_func(example)
+        main(model, tokenizer, eval_prompt)
+    except Exception as e:
+        logger.error(e)
         exit()

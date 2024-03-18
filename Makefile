@@ -4,7 +4,7 @@ init:
 
 build-dev:
 	@echo "Build docker dev image"
-	docker-compose -f docker_setup/docker-compose.dev.yml build
+	docker-compose -f docker_setup/docker-compose.dev.yml build --no-cache
 
 
 up-dev:

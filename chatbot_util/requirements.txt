@@ -1,3 +1,9 @@
 gradio==4.20.0
 langchain==0.1.4
 llama-index==0.9.40
+loguru
+
+git+https://github.com/huggingface/transformers.git
+git+https://github.com/huggingface/accelerate.git
+bitsandbytes
+git+https://github.com/huggingface/peft.git

@@ -8,9 +8,11 @@ services:
       context: ../chatbot_util
       dockerfile: ../chatbot_util/Dockerfile
     image: chatbot_engine:dev
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
       - ../chatbot_util/:/chatbot_util/
-    command: nvidia-smi
+    command: python chatbot_util/test/test.py
     deploy:
       resources:
         reservations:

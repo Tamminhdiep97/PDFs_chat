@@ -21,11 +21,11 @@ RUN apt-get update && \
 
 
 ADD ./requirements.txt /req.txt
-RUN pip install --no-cache-dir --user -r /req.txt
-RUN pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cu118
 
+RUN pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cu118
+RUN pip install --no-cache-dir --user -r /req.txt
 ### STAGE 2: BUILD RUNTIME
-FROM nvidia/cuda:12.0.0-runtime-ubuntu22.04 as runtime
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04 as runtime
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -41,5 +41,7 @@ COPY --from=builder /root/.local/lib/python3.11/site-packages /usr/local/lib/pyt
 COPY --from=builder /root/.local /usr/local
 COPY --from=builder /usr/local /usr/local
 
+RUN ldconfig /usr/local/cuda/lib64
+RUN export PATH=$PATH:/usr/local/cuda/bin
 # RUN pip install torch torchvision
 # RUN pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cu118
