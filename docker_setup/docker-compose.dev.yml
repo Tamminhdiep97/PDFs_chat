@@ -10,9 +10,16 @@ services:
     image: chatbot_engine:dev
     environment:
       - PYTHONUNBUFFERED=1
+      - TRANSFORMERS_CACHE=./cache/
     volumes:
       - ../chatbot_util/:/chatbot_util/
-    command: python chatbot_util/test/test.py
+      - ~/.cache/huggingface/hub:/cache/huggingface/hub
+    command: python chatbot_util/main_ui.py
+        # command: streamlit hello --server.port 7860
+    ports:
+      - 7860:7860
+    networks:
+      - net
     deploy:
       resources:
         reservations:
@@ -20,3 +27,24 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+
+  chatbot_PDFs_db:
+    container_name: chatbot_document_db
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - document_data:/chroma/.chroma/index
+    ports:
+      - 8000:8000
+    networks:
+      - net
+
+volumes:
+  document_data:
+    driver: local
+  backups:
+    driver: local
+
+networks:
+  net:
+    driver: bridge
