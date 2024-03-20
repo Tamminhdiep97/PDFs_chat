@@ -15,8 +15,11 @@ services:
       - ../chatbot_util/:/chatbot_util/
       - ~/.cache/huggingface/hub:/cache/huggingface/hub
     command: python chatbot_util/main_ui.py
+        # command: streamlit hello --server.port 7860
     ports:
       - 7860:7860
+    networks:
+      - net
     deploy:
       resources:
         reservations:
@@ -26,21 +29,22 @@ services:
               capabilities: [gpu]
 
 
-        # chroma:
-        #   image: ghcr.io/chroma-core/chroma:latest
-        #   volumes:
-        #     - document_data:/chroma/.chroma/index
-        #   ports:
-        #     - 8000:8000
-        #   networks:
-        #     - net
+  chatbot_PDFs_db:
+    container_name: chatbot_document_db
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - document_data:/chroma/.chroma/index
+    ports:
+      - 8000:8000
+    networks:
+      - net
 
-        # volumes:
-        #   document_data:
-        #     driver: local
-        #   backups:
-        #     driver: local
+volumes:
+  document_data:
+    driver: local
+  backups:
+    driver: local
 
-        # networks:
-        #   net:
-        #     driver: bridge
+networks:
+  net:
+    driver: bridge

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import gradio as gr
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer, BitsAndBytesConfig
@@ -6,6 +8,11 @@ from langchain.prompts.prompt import PromptTemplate
 from loguru import logger
 
 import config as conf
+
+
+def upload_file(filepath):
+    name = Path(filepath).name
+    return [gr.UploadButton(visible=False), gr.DownloadButton(label=f"Download {name}", value=filepath, visible=True)]
 
 
 def get_model():
@@ -31,16 +38,15 @@ model, tokenizer = get_model()
 
 
 template = """<s>[INST]You are a helpful, respectful and honest AI assistant.
-Current conversation:
-{history}
+Current conversation:{history}
 Human: {input}
 AI Assistant:"""
 
-text = """<s>[INST]Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-### Intructions:
-{intruction}
-### Input:
-{input}[/INST]"""
+# text = """<s>[INST]Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+# ### Intructions:
+# {intruction}
+# ### Input:
+# {input}[/INST]"""
 # messages_template = [
 #     {"role": "system", "content": "Always assist with care, respect, and truth. Respond with utmost utility yet securely. Avoid harmful, unethical, prejudiced, or negative content. Ensure replies promote fairness and positivity."}
 # ]
@@ -59,12 +65,12 @@ def predict(message, history):
     # logger.info(message)
     logger.info(history)
     history_transformer_format = history # + [[message, ""]]
-    logger.info(history_transformer_format)
+    # logger.info(history_transformer_format)
     stop = StopOnTokens()
 
     # messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])
     #             for item in history_transformer_format])
-    history_format = "".join(["".join(["\nHuman:"+item[0], "\nAI Assistant:"+item[1]])
+    history_format = "".join(["".join(["\nHuman: "+item[0], "\nAI Assistant: "+item[1]])
                               for item in history_transformer_format])   
     messages = template.format(history=history_format, input=message)
     messages += ' [/INST]'
