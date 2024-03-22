@@ -9,4 +9,14 @@ build-dev:
 
 up-dev:
 	@echo "CHATBOT dev up"
-	docker-compose -f docker_setup/docker-compose.dev.yml up
+	docker-compose -f docker_setup/docker-compose.dev.yml up -d
+
+
+log-dev:
+	@echo "CHATBOT dev log"
+	docker-compose -f docker_setup/docker-compose.dev.yml logs -f --tail 500
+
+
+stop-dev:
+	@echo "CHATBOT dev stop"
+	docker-compose -f docker_setup/docker-compose.dev.yml stop

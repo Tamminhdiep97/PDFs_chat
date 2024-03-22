@@ -14,7 +14,7 @@ services:
     volumes:
       - ../chatbot_util/:/chatbot_util/
       - ~/.cache/huggingface/hub:/cache/huggingface/hub
-    command: python chatbot_util/main_ui.py
+    command: python chatbot_util/gradio_ui.py
         # command: streamlit hello --server.port 7860
     ports:
       - 7860:7860
