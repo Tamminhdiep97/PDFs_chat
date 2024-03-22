@@ -7,8 +7,6 @@ streamlit==1.32.2
 langchain==0.1.4
 sentence-transformers
 
-
-
 llama-index-vector-stores-chroma
 llama-index-embeddings-huggingface
 llama-index==0.10.20
@@ -16,7 +14,6 @@ llama-index==0.10.20
 pdfplumber==0.9.0
 
 chromadb
-
 
 git+https://github.com/huggingface/transformers.git
 git+https://github.com/huggingface/accelerate.git
