@@ -1,5 +1,6 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer, BitsAndBytesConfig
+from transformers import pipeline
 from loguru import logger
 
 from threading import Thread
@@ -7,7 +8,7 @@ from threading import Thread
 
 class LLM(object):
     def __init__(self, config):
-        self.model, self.tokenizer = self.get_model(config)
+        self.model, self.tokenizer, self.pipe = self.get_model_pipeline(config)
         self.prompt = self.get_template()
         self.history = []
 
@@ -18,7 +19,7 @@ class LLM(object):
         AI Assistant:"""
         return prompt
 
-    def get_model(self, config):
+    def get_model_pipeline(self, config):
         bnb_config = BitsAndBytesConfig(  
             load_in_4bit= True,
             bnb_4bit_quant_type= "nf4",
@@ -34,12 +35,12 @@ class LLM(object):
                 trust_remote_code=True,
                 )
         tokenizer = AutoTokenizer.from_pretrained(config.llm_tokenizer, trust_remote_code=True)
-        return model, tokenizer
+        pipe = pipeline(task='text-generation', model=model, tokenizer=tokenizer)
+        return model, tokenizer, pipe
 
     def modify_history(self, message, response):
         self.history.append([message, response])
             
-
     def get_response(self, message):
         history_transformer_format = self.history
         history_format = "".join(["".join(["\nHuman: "+item[0], "\nAI Assistant: "+item[1]])
