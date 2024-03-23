@@ -1,14 +1,17 @@
+from threading import Thread
+
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer, BitsAndBytesConfig
 from transformers import pipeline
 from loguru import logger
+from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 
-from threading import Thread
 
 
 class LLM(object):
     def __init__(self, config):
         self.model, self.tokenizer, self.pipe = self.get_model_pipeline(config)
+        self.hf_llm = HuggingFacePipeline(pipeline=self.pipe)
         self.prompt = self.get_template()
         self.history = []
 
