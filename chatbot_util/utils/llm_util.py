@@ -10,8 +10,7 @@ from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 
 class LLM(object):
     def __init__(self, config):
-        self.model, self.tokenizer, self.pipe = self.get_model_pipeline(config)
-        self.hf_llm = HuggingFacePipeline(pipeline=self.pipe)
+        self.get_model_pipeline(config)
         self.prompt = self.get_template()
         self.history = []
 
@@ -31,15 +30,15 @@ class LLM(object):
             llm_int8_enable_fp32_cpu_offload= True
         )
 
-        model = AutoModelForCausalLM.from_pretrained(
+        self.model = AutoModelForCausalLM.from_pretrained(
                 config.llm_name,
                 quantization_config=bnb_config,
                 device_map="auto",
                 trust_remote_code=True,
                 )
-        tokenizer = AutoTokenizer.from_pretrained(config.llm_tokenizer, trust_remote_code=True)
-        pipe = pipeline(task='text-generation', model=model, tokenizer=tokenizer)
-        return model, tokenizer, pipe
+        self.tokenizer = AutoTokenizer.from_pretrained(config.llm_tokenizer, trust_remote_code=True)
+        self.pipe = pipeline(task='text-generation', model=self.model, tokenizer=self.tokenizer)
+        self.hf_llm = HuggingFacePipeline(pipeline=self.pipe)
 
     def modify_history(self, message, response):
         self.history.append([message, response])

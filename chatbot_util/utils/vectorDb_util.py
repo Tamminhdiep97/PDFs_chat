@@ -6,7 +6,7 @@ class VectorDB(object):
     def __init__(self, config):
         self.connect(config)
 
-    def connect(self, config):
+    def connect(self, config) -> None:
         self.chroma_client = chromadb.HttpClient(
                 host='chatbot_PDFs_db',
                 port=8000,
