@@ -15,12 +15,15 @@ class FunctionWrapper(object):
     def __init__(self, conf):
         self.conf = conf
         self.llm = utils.LLM(self.conf)
-        self.embedding = utils.EMB(self.conf)
-        self.vectorDb = utils.VectorDB(self.conf)
-        self.retriever = self.vectorDb.chroma_client.as_retriver(search_kwargs={'k=3'})
-        self.qa = RetrievalQA.from_chain_type(llm=self.llm.hf_llm, chain_type="stuff", retriever=self.retriever)
-        self.qa.combine_documents_chain.verbose = True
-        self.qa.return_source_documents = True
+        self.embedding = utils.EMB(self.conf).model
+        self.chroma_db = utils.VectorDB(self.conf)
+        self.vectorDb = Chroma(
+            client=self.chroma_db.chroma_client,
+            collection_name="test_name",
+            embedding_function=self.embedding,
+        )
+
+        self.vector_db_pdf()
 
     def vector_db_pdf(self) -> None:
         """
@@ -33,19 +36,27 @@ class FunctionWrapper(object):
         #     self.vectordb = Chroma(persist_directory=persist_directory, embedding_function=self.embedding)
         # elif pdf_path and os.path.exists(pdf_path):
         ## 1. Extract the documents
+        documents = []
+        logger.info(os.getcwd())
         for item in os.listdir(pdf_path):
             loader = PDFPlumberLoader(opj(pdf_path, item))
-            documents = loader.load()
+            documents.extend(loader.load())
+            # documents = loader.load()
             ## 2. Split the texts
-            text_splitter = CharacterTextSplitter(chunk_size=100, chunk_overlap=0)
-            texts = text_splitter.split_documents(documents)
-            # text_splitter = TokenTextSplitter(chunk_size=100, chunk_overlap=10, encoding_name="cl100k_base")  # This the encoding for text-embedding-ada-002
-            text_splitter = TokenTextSplitter(chunk_size=100, chunk_overlap=10)  # This the encoding for text-embedding-ada-002
-            texts = text_splitter.split_documents(texts)
+        text_splitter = CharacterTextSplitter(chunk_size=512, chunk_overlap=16)
+        texts = text_splitter.split_documents(documents)
+        # text_splitter = TokenTextSplitter(chunk_size=100, chunk_overlap=10, encoding_name="cl100k_base")  # This the encoding for text-embedding-ada-002
+        text_splitter = TokenTextSplitter(chunk_size=512, chunk_overlap=16)  # This the encoding for text-embedding-ada-002
+        texts = text_splitter.split_documents(texts)
 
             ## 3. Create Embeddings and add to chroma store
             ##TODO: Validate if self.embedding is not None
-            self.vectordb = self.vectorDb.chroma_client.from_documents(documents=texts, embedding=self.embedding)  # , persist_directory=persist_directory)
+        self.data = self.vectorDb.from_documents(documents=texts, embedding=self.embedding)  # , persist_directory=persist_directory)
+        self.retriever = self.data.as_retriever(search_kwaprgs={'k=3'})
+        self.qa = RetrievalQA.from_chain_type(llm=self.llm.hf_llm, chain_type="stuff", retriever=self.retriever)
+        self.qa.combine_documents_chain.verbose = True
+        self.qa.return_source_documents = True
+        # self.vectordb.persist()
         # else:
         #     raise ValueError("NO PDF found")
 
@@ -82,10 +93,14 @@ class FunctionWrapper(object):
         """
 
         answer_dict = self.qa({'query': question,})
-        print(answer_dict)
         answer = answer_dict['result']
         return answer
 
 if __name__ == '__main__':
     function_runtime = FunctionWrapper(conf)
     logger.info('load helper Function done')
+    questions = ['what is lora?', 'how can i train/finetune a llm on a new language?']
+    for i in questions:
+        logger.info(i)
+        answer = function_runtime.answer_query(i)
+        logger.info(answer)

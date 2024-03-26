@@ -6,6 +6,7 @@ class VectorDB(object):
     def __init__(self, config):
         self.config = config
         self.connect(self.config)
+        self.create_test_collection()
 
     def connect(self, config) -> None:
         self.chroma_client = chromadb.HttpClient(

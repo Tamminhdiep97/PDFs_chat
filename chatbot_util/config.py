@@ -1,3 +1,6 @@
+import os
+from os.path import join as opj
+
 import torch
 
 llm_name = 'mistralai/Mistral-7B-Instruct-v0.2'
@@ -10,4 +13,4 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 ui_port = 7860
 
-pdf_path = 'media' # None is for Online Upload file mode
+pdf_path = opj('chatbot_util', 'media') # None is for Online Upload file mode

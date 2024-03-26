@@ -35,9 +35,21 @@ class LLM(object):
                 quantization_config=bnb_config,
                 device_map="auto",
                 trust_remote_code=True,
-                )
-        self.tokenizer = AutoTokenizer.from_pretrained(config.llm_tokenizer, trust_remote_code=True)
-        self.pipe = pipeline(task='text-generation', model=self.model, tokenizer=self.tokenizer)
+            )
+        self.tokenizer = AutoTokenizer.from_pretrained(
+                config.llm_tokenizer,
+                trust_remote_code=True
+            )
+        self.pipe = pipeline(
+                task='text-generation',
+                model=self.model,
+                tokenizer=self.tokenizer,
+                temperature=0.1,
+                top_p=0.15,
+                top_k=500,
+                max_new_tokens=1024,
+                repetition_penalty=1.1
+            )
         self.hf_llm = HuggingFacePipeline(pipeline=self.pipe)
 
     def modify_history(self, message, response):
