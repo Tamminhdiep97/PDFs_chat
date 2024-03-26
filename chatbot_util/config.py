@@ -9,3 +9,5 @@ emb_model = 'sentence-transformers/all-mpnet-base-v2'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 ui_port = 7860
+
+pdf_path = 'media' # None is for Online Upload file mode
