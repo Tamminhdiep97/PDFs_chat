@@ -22,7 +22,6 @@ class FunctionWrapper(object):
             collection_name="test_name",
             embedding_function=self.embedding,
         )
-
         self.vector_db_pdf()
 
     def vector_db_pdf(self) -> None:
@@ -41,66 +40,34 @@ class FunctionWrapper(object):
         for item in os.listdir(pdf_path):
             loader = PDFPlumberLoader(opj(pdf_path, item))
             documents.extend(loader.load())
-            # documents = loader.load()
-            ## 2. Split the texts
-        text_splitter = CharacterTextSplitter(chunk_size=512, chunk_overlap=16)
+        ## 2. Split the texts
+        text_splitter = CharacterTextSplitter(chunk_size=512, chunk_overlap=32)
         texts = text_splitter.split_documents(documents)
         # text_splitter = TokenTextSplitter(chunk_size=100, chunk_overlap=10, encoding_name="cl100k_base")  # This the encoding for text-embedding-ada-002
-        text_splitter = TokenTextSplitter(chunk_size=512, chunk_overlap=16)  # This the encoding for text-embedding-ada-002
+        text_splitter = TokenTextSplitter(chunk_size=512, chunk_overlap=32, encoding_name='cl100k_base')  # This the encoding for text-embedding-ada-002
         texts = text_splitter.split_documents(texts)
-
-            ## 3. Create Embeddings and add to chroma store
-            ##TODO: Validate if self.embedding is not None
+        logger.info(texts)
+        ## 3. Create Embeddings and add to chroma store
+        ##TODO: Validate if self.embedding is not None
         self.data = self.vectorDb.from_documents(documents=texts, embedding=self.embedding)  # , persist_directory=persist_directory)
         self.retriever = self.data.as_retriever(search_kwaprgs={'k=3'})
         self.qa = RetrievalQA.from_chain_type(llm=self.llm.hf_llm, chain_type="stuff", retriever=self.retriever)
         self.qa.combine_documents_chain.verbose = True
         self.qa.return_source_documents = True
-        # self.vectordb.persist()
-        # else:
-        #     raise ValueError("NO PDF found")
 
-    # def retreival_qa_chain(self):
-    #     """
-    #     Creates retrieval qa chain using vectordb as retrivar and LLM to complete the prompt
-    #     """
-    #     ##TODO: Use custom prompt
-    #     # self.retriever = self.vectordb.as_retriever(search_kwargs={"k":3})
-    #     # 
-    #     # if self.config["llm"] == LLM_OPENAI_GPT35:
-    #     #   # Use ChatGPT API
-    #     #   self.qa = RetrievalQA.from_chain_type(llm=OpenAI(model_name=LLM_OPENAI_GPT35, temperature=0.), chain_type="stuff",\
-    #     #                               retriever=self.vectordb.as_retriever(search_kwargs={"k":3}))
-    #     # else:
-    #     #     hf_llm = HuggingFacePipeline(pipeline=self.llm,model_id=self.config["llm"])
-
-    #     self.qa = RetrievalQA.from_chain_type(llm=shf_llm, chain_type="stuff",retriever=self.retriever)
-    #     # if self.config["llm"] == LLM_FLAN_T5_SMALL or self.config["llm"] == LLM_FLAN_T5_BASE or self.config["llm"] == LLM_FLAN_T5_LARGE:
-    #     #     question_t5_template = """
-    #     #     context: {context}
-    #     #     question: {question}
-    #     #     answer: 
-    #     #     """
-    #     #     QUESTION_T5_PROMPT = PromptTemplate(
-    #     #         template=question_t5_template, input_variables=["context", "question"]
-    #     #     )
-    #     #     self.qa.combine_documents_chain.llm_chain.prompt = QUESTION_T5_PROMPT
-    #     self.qa.combine_documents_chain.verbose = True
-    #     self.qa.return_source_documents = True
-    def answer_query(self, question:str) ->str:
+    def answer_query(self, question:str) -> str:
         """
         Answer the question
         """
-
-        answer_dict = self.qa({'query': question,})
+        answer_dict = self.qa.invoke({'query': question,})
         answer = answer_dict['result']
         return answer
 
 if __name__ == '__main__':
     function_runtime = FunctionWrapper(conf)
     logger.info('load helper Function done')
-    questions = ['what is lora?', 'how can i train/finetune a llm on a new language?']
+    questions = ['what is lora?', 'what is tokenization']
     for i in questions:
-        logger.info(i)
         answer = function_runtime.answer_query(i)
-        logger.info(answer)
+        logger.info('Question: {}'.format(i))
+        logger.info('Answer: {}'.format(answer))
