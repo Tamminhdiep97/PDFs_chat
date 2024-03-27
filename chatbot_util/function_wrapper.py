@@ -55,6 +55,48 @@ class FunctionWrapper(object):
         self.qa.combine_documents_chain.verbose = True
         self.qa.return_source_documents = True
 
+    def emb_document(self, path):
+        # load the document
+        loader = PDFPlumberLoader(path)
+        documents = loader.load()
+        # Split the text
+        text_splitter = CharacterTextSplitter(
+                chunk_size=conf.emb_chunk_size,
+                chunk_overlap=conf.emb_chunk_overlap
+            )
+        texts = text_splitter.split_documents(documents)
+        # text_splitter = TokenTextSplitter(chunk_size=100, chunk_overlap=10, encoding_name="cl100k_base")  # This the encoding for text-embedding-ada-002
+        text_splitter = TokenTextSplitter(
+                chunk_size=conf.emb_chunk_size,
+                chunk_overlap=conf.emb_chunk_overlap,
+                encoding_name='cl100k_base'
+            )  # This the encoding for text-embedding-ada-002
+        texts = text_splitter.split_documents(texts)
+        # Upload Documents
+        ## Check if the collection exists. If empty, create a new one with the documents and embeddings.
+        collection = self.vectorDb.get()
+        if len(collection.get('ids', [])) == 0:
+            # self.data = Chroma.from_documents(
+            #         documents=texts,
+            #         embedding=self.embedding,
+            #         persist_directory=self.conf.db_persist_directory,
+            #         collection_name="test_name"
+            # )
+            self.data = self.vectorDb.from_documents(
+                    documents=texts,
+                    embedding=self.embedding,
+                    persist_directory=self.conf.db_persist_directory,
+                    collection_name="test_name"
+            )
+        else:
+        ## If collection already has documents, sumply add the new ones with their embeddings
+            collection.append(texts, embeddings=self.embedding)
+            self.vectorDb.persist()  # Save the updated collection
+
+
+
+        
+
     def answer_query(self, question:str) -> str:
         """
         Answer the question
