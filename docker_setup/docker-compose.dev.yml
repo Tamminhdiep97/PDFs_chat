@@ -12,10 +12,12 @@ services:
       - PYTHONUNBUFFERED=1
       - TRANSFORMERS_CACHE=./cache/
     volumes:
+      - ../document_data/:/document_data/
       - ../chatbot_util/:/chatbot_util/
       - ~/.cache/huggingface/hub:/cache/huggingface/hub
-    command: python chatbot_util/main_ui.py
-        # command: streamlit hello --server.port 7860
+    command: python chatbot_util/gradio_ui.py
+        # command: streamlit run streamlit_ui.py --server.port 7860
+        # command: python chatbot_util/function_wrapper.py
     ports:
       - 7860:7860
     networks:
