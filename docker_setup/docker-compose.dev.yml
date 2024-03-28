@@ -12,6 +12,7 @@ services:
       - PYTHONUNBUFFERED=1
       - TRANSFORMERS_CACHE=./cache/
     volumes:
+      - ../document_data/:/document_data/
       - ../chatbot_util/:/chatbot_util/
       - ~/.cache/huggingface/hub:/cache/huggingface/hub
     command: python chatbot_util/gradio_ui.py

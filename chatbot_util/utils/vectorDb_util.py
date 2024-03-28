@@ -30,3 +30,4 @@ class VectorDB(object):
 
     def delete_test_collection(self):
         self.chroma_client.delete_collection("test_name")
+        self.create_test_collection()

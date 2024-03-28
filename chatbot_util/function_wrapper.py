@@ -1,5 +1,6 @@
 import os
 from os.path import join as opj
+import time
 
 from loguru import logger
 from langchain.document_loaders import PDFPlumberLoader
@@ -17,13 +18,14 @@ class FunctionWrapper(object):
         self.llm = utils.LLM(self.conf)
         self.embedding = utils.EMB(self.conf).model
         self.chroma_db = utils.VectorDB(self.conf)
+        self.chroma_db.delete_test_collection()
         self.vectorDb = Chroma(
             client=self.chroma_db.chroma_client,
             collection_name="test_name",
             embedding_function=self.embedding,
+            persist_directory='document_data'
         )
         collection = self.vectorDb.get()
-
         logger.info('There are {} documents in collection'.format(str(len(collection.get('ids', [])))))
         self.vector_db_pdf()
 
@@ -40,6 +42,7 @@ class FunctionWrapper(object):
 
     def emb_document(self, path) -> None:
         # load the document
+        logger.info(path)
         loader = PDFPlumberLoader(path)
         documents = loader.load()
         # Split the text
@@ -55,10 +58,12 @@ class FunctionWrapper(object):
                 encoding_name='cl100k_base'
             )  # This the encoding for text-embedding-ada-002
         texts = text_splitter.split_documents(texts)
+        logger.info(len(texts))
         # Upload Documents
         ## Check if the collection exists. If empty, create a new one with the documents and embeddings.
         collection = self.vectorDb.get()
         if len(collection.get('ids', [])) == 0:
+            logger.info('Create new db collection')
             self.vectorDb = self.vectorDb.from_documents(
                     documents=texts,
                     embedding=self.embedding,
@@ -67,10 +72,17 @@ class FunctionWrapper(object):
             )
         else:
         ## If collection already has documents, sumply add the new ones with their embeddings
+            logger.info('Add to exists')
             self.vectorDb.add_documents(texts, embeddings=self.embedding)
         self.vectorDb.persist()  # Save the updated collection
         collection = self.vectorDb.get()
-        logger.info('There are {} documents in collection'.format(str(len(collection.get('ids', [])))))
+        logger.info(
+            'There are {} documents in collection'.format(
+                str(
+                    len(collection.get('ids', []))
+                )
+            )
+        )
 
     def reload_retrieval(self) -> None:
         self.retriever = self.vectorDb.as_retriever(search_kwaprgs={'k={}'.format(str(self.conf.search_topk))})

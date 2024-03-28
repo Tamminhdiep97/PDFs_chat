@@ -42,11 +42,12 @@ class LLM(object):
             )
         self.pipe = pipeline(
                 task='text-generation',
+                do_sample=True,
                 model=self.model,
                 tokenizer=self.tokenizer,
                 temperature=0.1,
                 top_p=0.15,
-                top_k=500,
+                top_k=256,
                 max_new_tokens=1024,
                 repetition_penalty=1.1
             )
