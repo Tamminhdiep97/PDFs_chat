@@ -3,7 +3,7 @@ services:
   
   chatbot_engine:
     container_name: chatbot_engine
-    restart: always
+      # restart: always
     build:
       context: ../chatbot_util
       dockerfile: ../chatbot_util/Dockerfile
@@ -19,7 +19,7 @@ services:
         # command: streamlit run streamlit_ui.py --server.port 7860
         # command: python chatbot_util/function_wrapper.py
     ports:
-      - 7860:7860
+      - ${engine_port}:${engine_port}
     networks:
       - net
     deploy:
@@ -37,7 +37,7 @@ services:
     volumes:
       - document_data:/chroma/.chroma/index
     ports:
-      - 8000:8000
+      - ${chroma_port}
     networks:
       - net
 

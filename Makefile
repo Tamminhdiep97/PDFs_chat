@@ -1,22 +1,32 @@
 init:
 	@echo "init step for CHATBOT SYSTEM"
+	cd docker_setup && cp .env.example .env
 
 
-build-dev:
-	@echo "Build docker dev image"
-	docker compose -f docker_setup/docker-compose.dev.yml build --no-cache
+dev-init:
+	make init
+	cd docker_setup && cp docker-compose.dev.yml .docker-compose.yml
 
 
-up-dev:
-	@echo "CHATBOT dev up"
-	docker compose -f docker_setup/docker-compose.dev.yml up -d
+dev-build:
+	@echo "Build docker dev image with no cache"
+	make dev-init
+	docker compose -f docker_setup/.docker-compose.yml build --no-cache
 
 
-log-dev:
+dev-up:
+	@echo "CHATBOT dev env up"
+	make dev-init
+	docker compose -f docker_setup/.docker-compose.yml up -d
+
+
+dev-log:
 	@echo "CHATBOT dev log"
-	docker compose -f docker_setup/docker-compose.dev.yml logs -f --tail 500
+	make dev-init
+	docker compose -f docker_setup/.docker-compose.yml logs -f --tail 500
 
 
-stop-dev:
+dev-stop:
 	@echo "CHATBOT dev stop"
-	docker compose -f docker_setup/docker-compose.dev.yml stop
+	make  dev-init
+	docker compose -f docker_setup/.docker-compose.yml stop
