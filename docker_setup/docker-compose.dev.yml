@@ -3,7 +3,7 @@ services:
   
   chatbot_engine:
     container_name: chatbot_engine
-    restart: always
+      # restart: always
     build:
       context: ../chatbot_util
       dockerfile: ../chatbot_util/Dockerfile
@@ -12,12 +12,14 @@ services:
       - PYTHONUNBUFFERED=1
       - TRANSFORMERS_CACHE=./cache/
     volumes:
+      - ../document_data/:/document_data/
       - ../chatbot_util/:/chatbot_util/
       - ~/.cache/huggingface/hub:/cache/huggingface/hub
-    command: python chatbot_util/main_ui.py
-        # command: streamlit hello --server.port 7860
+    command: python chatbot_util/gradio_ui.py
+        # command: streamlit run streamlit_ui.py --server.port 7860
+        # command: python chatbot_util/function_wrapper.py
     ports:
-      - 7860:7860
+      - ${engine_port}:${engine_port}
     networks:
       - net
     deploy:
@@ -35,7 +37,7 @@ services:
     volumes:
       - document_data:/chroma/.chroma/index
     ports:
-      - 8000:8000
+      - ${chroma_port}
     networks:
       - net
 

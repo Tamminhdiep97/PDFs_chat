@@ -5,18 +5,15 @@ gradio==4.20.0
 streamlit==1.32.2
 
 langchain==0.1.4
+langchain-community
 sentence-transformers
-
-
 
 llama-index-vector-stores-chroma
 llama-index-embeddings-huggingface
 llama-index==0.10.20
 
-pdfplumber==0.9.0
-
+pdfplumber
 chromadb
-
 
 git+https://github.com/huggingface/transformers.git
 git+https://github.com/huggingface/accelerate.git

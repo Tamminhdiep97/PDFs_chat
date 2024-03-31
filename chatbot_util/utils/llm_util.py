@@ -1,13 +1,16 @@
+from threading import Thread
+
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer, BitsAndBytesConfig
+from transformers import pipeline
 from loguru import logger
+from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 
-from threading import Thread
 
 
 class LLM(object):
     def __init__(self, config):
-        self.model, self.tokenizer = self.get_model(config)
+        self.get_model_pipeline(config)
         self.prompt = self.get_template()
         self.history = []
 
@@ -18,7 +21,7 @@ class LLM(object):
         AI Assistant:"""
         return prompt
 
-    def get_model(self, config):
+    def get_model_pipeline(self, config):
         bnb_config = BitsAndBytesConfig(  
             load_in_4bit= True,
             bnb_4bit_quant_type= "nf4",
@@ -27,19 +30,32 @@ class LLM(object):
             llm_int8_enable_fp32_cpu_offload= True
         )
 
-        model = AutoModelForCausalLM.from_pretrained(
+        self.model = AutoModelForCausalLM.from_pretrained(
                 config.llm_name,
                 quantization_config=bnb_config,
                 device_map="auto",
                 trust_remote_code=True,
-                )
-        tokenizer = AutoTokenizer.from_pretrained(config.llm_tokenizer, trust_remote_code=True)
-        return model, tokenizer
+            )
+        self.tokenizer = AutoTokenizer.from_pretrained(
+                config.llm_tokenizer,
+                trust_remote_code=True
+            )
+        self.pipe = pipeline(
+                task='text-generation',
+                do_sample=True,
+                model=self.model,
+                tokenizer=self.tokenizer,
+                temperature=0.1,
+                top_p=0.15,
+                top_k=256,
+                max_new_tokens=1024,
+                repetition_penalty=1.1
+            )
+        self.hf_llm = HuggingFacePipeline(pipeline=self.pipe)
 
     def modify_history(self, message, response):
         self.history.append([message, response])
             
-
     def get_response(self, message):
         history_transformer_format = self.history
         history_format = "".join(["".join(["\nHuman: "+item[0], "\nAI Assistant: "+item[1]])
