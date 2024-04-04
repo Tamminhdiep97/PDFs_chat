@@ -13,7 +13,10 @@ llama-index-embeddings-huggingface
 llama-index==0.10.20
 
 pdfplumber
+
 chromadb
+pymilvus
+weaviate-client
 
 git+https://github.com/huggingface/transformers.git
 git+https://github.com/huggingface/accelerate.git
