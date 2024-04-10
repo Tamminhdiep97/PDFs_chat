@@ -1,6 +1,9 @@
+import uuid
+
 import chromadb
 from chromadb.config import Settings
 import weaviate
+import weaviate.classes.config as wvcc
 from weaviate.connect import ConnectionParams
 
 
@@ -40,6 +43,17 @@ class VectorDB(object):
         self.config = config
         self.embedding_function = embedding
         self.connect()
+
+    def mock_data(self):
+        id_mock = str(uuid.uuid4())
+        self.user_data = {
+            "user_id": id_mock
+        }
+        self.session_data = {
+            "session_id": "session_1",
+            "user": {"$$reference": "User.user_id={}".format(id_mock)}
+        }
+
     
     def connect(self):
         self.client = weaviate.WeaviateClient(
@@ -60,16 +74,27 @@ class VectorDB(object):
         )
 
         self.client.connect()
-        # self.client = weaviate.connect_to_local(
-        #     port=8080,
-        #     grpc_port=50051,
-        #     additional_config=weaviate.config.AdditionalConfig(timeout=(5, 15))  # Values in seconds
-        # )
-
+        # self.client = weaviate.Client('http://document_db:8080')
         pass
 
-    def create_collection(self):
+    def create_collection(self, collection_name):
+        if not self.client.collections.exists(collection_name):
+            self.client.collections.create(
+                name=collection_name,
+                # vectorizer_config=wvcc.Configure.Vectorizer.text2vec_cohere(),
+                vectorizer_config=None,
+                generative_config=None,
+            #     properties=[
+            #         wvcc.Property(
+            #             name="Title", data_type=wvcc.DataType.TEXT,
+            #             name="Content", data_type=wvcc.DataType.TEXT
+            #         )
+            #     ]
+            )
         pass
+
+    def get_collection(self, collection_name):
+        return self.client.collections.get(collection_name)
 
     def delete_collection(self):
         pass
