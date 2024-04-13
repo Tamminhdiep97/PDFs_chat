@@ -5,7 +5,7 @@ from chromadb.config import Settings
 import weaviate
 import weaviate.classes.config as wvcc
 from weaviate.connect import ConnectionParams
-
+from loguru import logger
 
 class VectorChromaDB(object):
     def __init__(self, config):
@@ -74,6 +74,7 @@ class VectorDB(object):
         )
 
         self.client.connect()
+        self.delete_collection('mock')
         # self.client = weaviate.Client('http://document_db:8080')
         pass
 
@@ -94,9 +95,16 @@ class VectorDB(object):
         pass
 
     def get_collection(self, collection_name):
-        return self.client.collections.get(collection_name)
+        collection = self.client.collections.get(collection_name)
+        # for item in collection.iterator(
+        #     include_vector=True  # If using named vectors, you can specify ones to include e.g. ['title', 'body'], or True to include all
+        # ):
+            # logger.info(item.properties)
+            # logger.info(item.vector)
+        return collection
 
-    def delete_collection(self):
+    def delete_collection(self, collection_name):
+        self.client.collections.delete(collection_name)
         pass
 
     def query(self):

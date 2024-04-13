@@ -20,11 +20,11 @@ class FunctionWrapper(object):
         self.conf = conf
         self.embedding = utils.EMB(self.conf).model
         self.vectorDB_client = utils.VectorDB(self.conf, self.embedding)
-        
         self.vectorDb = WeaviateVectorStore(
             client=self.vectorDB_client.client,
             index_name=self.collection_name,
-            text_key='text'
+            text_key='text',
+            embedding=self.embedding
         )
         # self.vectorDb = WeaviateHybridSearchRetriever(
         #     client=self.vectorDB_client.client,
@@ -44,14 +44,13 @@ class FunctionWrapper(object):
         # )
         # collection = self.vectorDb.get()
         # logger.info('There are {} documents in collection'.format(str(len(collection.get('ids', [])))))
-        # self.vector_db_pdf()
+        self.vector_db_pdf()
+        self.collection = self.vectorDB_client.get_collection(self.collection_name)
         self.reload_retrieval()
-        collection = self.vectorDB_client.get_collection(self.collection_name)
-        logger.info(collection)
-        response = collection.query.fetch_objects(
-            limit=3, include_vector=True
-        )
-        logger.info(response)
+        # self.collection = self.vectorDB_client.get_collection(self.collection_name)
+        # response = collection.query.fetch_objects(
+        #     limit=3, include_vector=True
+        # )
         # for item in collection.iterator():
         #     logger.info(item)
 
@@ -103,8 +102,8 @@ class FunctionWrapper(object):
             embeddings=self.embedding,
             collection=self.collection_name
         )
-        collection = self.vectorDB_client.get_collection(self.collection_name)
-        logger.info(collection)
+        logger.info(self.vectorDb)
+        # logger.info(collection)
         # collection = self.vectorDb.get()
         # logger.info(
         #     'There are {} documents in collection'.format(
@@ -119,11 +118,13 @@ class FunctionWrapper(object):
             collection=self.collection_name,
             search_kwaprgs={'k={}'.format(str(self.conf.search_topk))},
         )
+        # self.retriever = self.collection.as_triever()
         self.qa = RetrievalQA.from_chain_type(
             llm=self.llm.hf_llm,
             chain_type="stuff",
             retriever=self.retriever
         )
+        logger.info(self.qa)
         self.qa.combine_documents_chain.verbose = True
         self.qa.return_source_documents = True
 
@@ -132,7 +133,9 @@ class FunctionWrapper(object):
         Answer the question
         """
         answer_dict = self.qa.invoke({'query': question,})
-        answer = answer_dict['result']
+        logger.info(answer_dict['result'])
+        # logger.info(type(answer_dict['result']))
+        answer = answer_dict['result'].split('Helpful Answer: ')[1]
         return answer
 
 if __name__ == '__main__':

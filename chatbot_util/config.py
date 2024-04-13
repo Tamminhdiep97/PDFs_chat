@@ -13,7 +13,7 @@ ui_port = 7860
 pdf_path = opj('chatbot_util', 'media') # None is for Online Upload file mode
 
 emb_model = 'sentence-transformers/all-mpnet-base-v2'
-emb_chunk_size = 128
+emb_chunk_size = 512
 emb_chunk_overlap = 32
 
 search_topk = 3
