@@ -30,3 +30,9 @@ dev-stop:
 	@echo "CHATBOT dev stop"
 	make  dev-init
 	docker compose -f docker_setup/.docker-compose.yml stop
+
+
+dev-restart:
+	@echo "CHATBOT restart"
+	make dev-stop
+	make dev-up
