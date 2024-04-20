@@ -15,9 +15,10 @@ services:
       # - ../document_data/:/document_data/
       - ../chatbot_util/:/chatbot_util/
       - ~/.cache/huggingface/hub:/cache/huggingface/hub
-    command: python chatbot_util/gradio_ui.py
+    # command: python chatbot_util/gradio_ui.py
     # command: streamlit run streamlit_ui.py --server.port 7860
     # command: python chatbot_util/function_wrapper.py
+    command: uvicorn chatbot_util.server:app --host 0.0.0.0 --port 7860
     ports:
       - ${engine_port}:${engine_port}
     networks:

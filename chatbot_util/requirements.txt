@@ -1,8 +1,11 @@
 loguru
 python-dotenv==1.0.1
 
-gradio==4.20.0
-streamlit==1.32.2
+fastapi[all]
+uvicorn[standard]
+
+# gradio==4.20.0
+# streamlit==1.32.2
 
 langchain
 langchain-community
@@ -17,8 +20,6 @@ langchain-weaviate
 
 pdfplumber
 
-chromadb
-pymilvus
 weaviate-client
 
 git+https://github.com/huggingface/transformers.git

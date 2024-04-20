@@ -10,55 +10,35 @@ from langchain_community.vectorstores import Weaviate
 from langchain_weaviate.vectorstores import WeaviateVectorStore
 from langchain_community.retrievers import WeaviateHybridSearchRetriever
 
-import utils
-import config as conf
+from . import utils
+from . import config as conf
 
 
 class FunctionWrapper(object):
     def __init__(self, conf):
-        self.collection_name = 'mock'
+        self.collection_name = 'nlp_technique'
         self.conf = conf
         self.embedding = utils.EMB(self.conf).model
         self.vectorDB_client = utils.VectorDB(self.conf, self.embedding)
+        # self.vectorDB_client.delete_collection(self.collection_name)
         self.vectorDb = WeaviateVectorStore(
             client=self.vectorDB_client.client,
             index_name=self.collection_name,
             text_key='text',
             embedding=self.embedding
         )
-        # self.vectorDb = WeaviateHybridSearchRetriever(
-        #     client=self.vectorDB_client.client,
-        #     index_name=self.collection_name,
-        #     text_key="text",
-        #     attributes=[],
-        #     create_schema_if_missing=True,
-        # ) 
-        self.vectorDB_client.create_collection(self.collection_name)
+
+        # self.vectorDB_client.create_collection(self.collection_name)
         self.llm = utils.LLM(self.conf)
-        # self.chroma_db.delete_test_collection()
-        # self.vectorDb = Chroma(
-        #     client=self.chroma_db.chroma_client,
-        #     # collection_name="test_name",
-        #     embedding_function=self.embeddingre,
-        #     # persist_directory='document_data'
-        # )
-        # collection = self.vectorDb.get()
-        # logger.info('There are {} documents in collection'.format(str(len(collection.get('ids', [])))))
         self.vector_db_pdf()
-        self.collection = self.vectorDB_client.get_collection(self.collection_name)
         self.reload_retrieval()
-        # self.collection = self.vectorDB_client.get_collection(self.collection_name)
-        # response = collection.query.fetch_objects(
-        #     limit=3, include_vector=True
-        # )
-        # for item in collection.iterator():
-        #     logger.info(item)
+
 
     def vector_db_pdf(self) -> None:
         """
         creates vector db for the embeddings and persists them or loads a vector db from the persist directory
         """
-        pdf_path = self.conf.pdf_path
+        pdf_path = opj(self.conf.pdf_path, self.collection_name)
         logger.info(os.getcwd())
         for item in os.listdir(pdf_path):
             file_path = opj(pdf_path, item)
@@ -70,6 +50,7 @@ class FunctionWrapper(object):
         logger.info(path)
         loader = PDFPlumberLoader(path)
         documents = loader.load()
+        logger.info(documents[0].metadata)
         # Split the text
         text_splitter = CharacterTextSplitter(
                 chunk_size=conf.emb_chunk_size,
@@ -83,37 +64,25 @@ class FunctionWrapper(object):
                 encoding_name='cl100k_base'
             )  # This the encoding for text-embedding-ada-002
         texts = text_splitter.split_documents(texts)
-        # Upload Documents
-        ## Check if the collection exists. If empty, create a new one with the documents and embeddings.
-        # collection = self.vectorDB_client.get_collection(self.collection_name)
-        # if len(collection.get('ids', [])) == 0:
-        #     logger.info('Create new db collection')
-        #     self.vectorDb = self.vectorDb.from_documents(
-        #             documents=texts,
-        #             embedding=self.embedding,
-        #             # persist_directory=self.conf.db_persist_directory,
-        #             collection_name="test_name"
-        #     )
-        # else:
-        ## If collection already has documents, sumply add the new ones with their embeddings
+
         logger.info('Add to exists')
         self.vectorDb.add_documents(
             texts,
             embeddings=self.embedding,
             collection=self.collection_name
         )
-        logger.info(self.vectorDb)
-        # logger.info(collection)
-        # collection = self.vectorDb.get()
-        # logger.info(
-        #     'There are {} documents in collection'.format(
-        #         str(
-        #             len(collection.get('ids', []))
-        #         )
-        #     )
-        # )                 
 
-    def reload_retrieval(self) -> None:
+    def reload_retrieval(self, collection_name=None) -> None:
+        if collection_name is not None:
+            self.collection_name = collection_name
+        logger.info(self.collection_name)
+        self.vectorDb = WeaviateVectorStore(
+            client=self.vectorDB_client.client,
+            index_name=self.collection_name,
+            text_key='text',
+            embedding=self.embedding
+        )
+
         self.retriever = self.vectorDb.as_retriever(
             collection=self.collection_name,
             search_kwaprgs={'k={}'.format(str(self.conf.search_topk))},

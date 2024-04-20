@@ -48,7 +48,7 @@ class LLM(object):
                 temperature=0.1,
                 top_p=0.15,
                 top_k=256,
-                max_new_tokens=1024,
+                max_new_tokens=config.max_new_token,
                 repetition_penalty=1.1
             )
         self.hf_llm = HuggingFacePipeline(pipeline=self.pipe)
