@@ -16,7 +16,7 @@ from . import config as conf
 
 class FunctionWrapper(object):
     def __init__(self, conf):
-        self.collection_name = 'nlp_technique'
+        self.collection_name = 'vision_technique'
         self.conf = conf
         self.embedding = utils.EMB(self.conf).model
         self.vectorDB_client = utils.VectorDB(self.conf, self.embedding)
@@ -30,7 +30,7 @@ class FunctionWrapper(object):
 
         # self.vectorDB_client.create_collection(self.collection_name)
         self.llm = utils.LLM(self.conf)
-        self.vector_db_pdf()
+        # self.vector_db_pdf()
         self.reload_retrieval()
 
 
