@@ -34,22 +34,24 @@ class FunctionWrapper(object):
         self.reload_retrieval()
 
 
-    def vector_db_pdf(self) -> None:
-        """
-        creates vector db for the embeddings and persists them or loads a vector db from the persist directory
-        """
-        pdf_path = opj(self.conf.pdf_path, self.collection_name)
-        logger.info(os.getcwd())
-        for item in os.listdir(pdf_path):
-            file_path = opj(pdf_path, item)
-            self.emb_document(file_path)
-            self.reload_retrieval()
+    # def vector_db_pdf(self) -> None:
+    #     """
+    #     creates vector db for the embeddings and persists them or loads a vector db from the persist directory
+    #     """
+    #     pdf_path = opj(self.conf.pdf_path, self.collection_name)
+    #     logger.info(os.getcwd())
+    #     for item in os.listdir(pdf_path):
+    #         file_path = opj(pdf_path, item)
+    #         self.emb_document(file_path)
+            # self.reload_retrieval()
 
-    def emb_document(self, path) -> None:
+    def emb_document(self, path, user) -> None:
         # load the document
         logger.info(path)
         loader = PDFPlumberLoader(path)
         documents = loader.load()
+        for document in documents:
+            document.metadata = {'user': user}
         logger.info(documents[0].metadata)
         # Split the text
         text_splitter = CharacterTextSplitter(

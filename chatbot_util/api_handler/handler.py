@@ -64,12 +64,12 @@ async def create_upload_files(
     os.makedirs(store_path, exist_ok=True)
     file_paths = []
     for file in files:
-        file_path = opj(store_path, file.name)
+        file_path = opj(store_path, file.filename)
         file_paths.append(file_path)
         with open(file_path, "wb") as f:
             f.write(file.file.read())
     for path in file_paths:
-        runner.emb_document(path)
+        runner.emb_document(path, user_name)
     runner.reload_retrieval(collection_name=collection_name)
     return {"filenames": [file.filename for file in files]}
 
