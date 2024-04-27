@@ -10,4 +10,7 @@ class EMB(object):
         self.model = self.create_sbert_mpnet(config)
 
     def create_sbert_mpnet(self, conf):
-        return HuggingFaceEmbeddings(model_name=conf.emb_model, model_kwargs={'device': self.device})
+        return HuggingFaceEmbeddings(
+            model_name=conf.emb_model,
+            model_kwargs={'device': self.device}
+        )
